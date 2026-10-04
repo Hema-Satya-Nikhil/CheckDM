@@ -1,6 +1,9 @@
 /**
  * Shared keys and shape for the CSV import handoff. The import page stages
  * rows in localStorage, then the campaign builder consumes them one at a time.
+ *
+ * The `openreply-` prefix is a pre-rebrand localStorage key kept as-is:
+ * renaming it would silently drop any CSV a user had already staged.
  */
 export const IMPORT_QUEUE_KEY = "openreply-import-queue";
 export const IMPORT_ACCOUNT_KEY = "openreply-import-account";

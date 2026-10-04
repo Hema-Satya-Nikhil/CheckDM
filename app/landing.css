@@ -1,10 +1,19 @@
+/* CheckDM marketing surface.
+   The `or-` class prefix is the original project namespace and is kept as-is
+   so the stylesheet stays reviewable; the brand tokens below are CheckDM's. */
 .or-landing {
-  --or-paper: #faf9f6;
-  --or-ink: #22221f;
-  --or-muted: #62625e;
-  --or-line: #deded7;
-  --or-orange: #c4490c;
-  --or-peach: #f6e6d8;
+  --or-paper: #ffffff;
+  --or-ink: #0b1220;
+  --or-navy: #10203a;
+  --or-navy-soft: #1a3054;
+  --or-muted: #5b6b84;
+  --or-subtle: #8494a8;
+  --or-line: #e3e9f2;
+  --or-line-strong: #cbd5e4;
+  --or-orange: #1d4fd8;
+  --or-peach: #eef3fe;
+  --or-success: #12805c;
+  --or-success-soft: #e8f5f0;
   background: var(--or-paper);
   color: var(--or-ink);
   font-size: 16px;
@@ -67,6 +76,12 @@
   font-weight: 600;
   letter-spacing: -0.045em;
 }
+.or-wordmark-mark {
+  width: 26px;
+  height: 26px;
+  color: var(--or-navy);
+  flex-shrink: 0;
+}
 .or-wordmark > span {
   color: var(--or-orange);
   font-weight: 400;
@@ -123,14 +138,28 @@
   font-size: 14px;
   padding: 10px 16px;
 }
+/* Primary action stays near-black navy rather than saturated blue: one accent
+   colour carries emphasis across the page, so the button does not compete with
+   links and eyebrows for it. */
 .or-button-primary {
-  background: var(--or-ink);
+  background: var(--or-navy);
   color: white;
-  border-color: var(--or-ink);
+  border-color: var(--or-navy);
 }
 .or-button-primary:hover {
-  background: #3c3c36;
+  background: var(--or-navy-soft);
+  border-color: var(--or-navy-soft);
   text-decoration: none !important;
+}
+.or-button {
+  transition:
+    background-color 140ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    border-color 140ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    color 140ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 140ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.or-button:active {
+  transform: translateY(1px);
 }
 .or-hero {
   display: grid;
@@ -139,11 +168,13 @@
   align-items: center;
   padding-block: 76px 60px;
 }
+/* Eyebrow — small caps label rather than a monospace terminal heading. A
+   monospace eyebrow was the clearest signal of a developer-console layout. */
 .or-eyebrow {
-  font:
-    500 13px/1.5 Menlo,
-    Consolas,
-    monospace;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--or-orange);
   margin-bottom: 20px !important;
 }
@@ -176,6 +207,7 @@
   display: inline-flex;
   align-items: center;
   gap: 12px;
+  min-height: 24px;
 }
 .or-hero-note {
   font-size: 13px;
@@ -207,7 +239,7 @@
 }
 .or-preview {
   border: 1px solid var(--or-line);
-  border-radius: 16px;
+  border-radius: 12px;
   background: white;
   min-width: 0;
 }
@@ -222,10 +254,10 @@
   font-size: 16px;
 }
 .or-mono {
-  font:
-    11px/1.6 Menlo,
-    Consolas,
-    monospace;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.6;
+  font-variant-ligatures: none;
   color: var(--or-muted);
 }
 .or-preview-body {
@@ -250,7 +282,7 @@
   height: 36px;
   display: grid;
   place-items: center;
-  background: var(--or-ink);
+  background: var(--or-navy);
   color: white;
   border-radius: 50%;
   font-size: 14px;
@@ -258,12 +290,15 @@
 }
 .or-active {
   margin-left: auto;
-  color: #166534;
+  color: var(--or-success);
   font-size: 11px;
-  background: #f0fdf4;
+  background: var(--or-success-soft);
   padding: 3px 9px;
   border-radius: 6px;
 }
+/* The decorative concentric rings that used to sit behind the post artwork are
+   removed deliberately: they read as filler rather than structure. The post
+   keeps a single hairline border for depth. */
 .or-post {
   background: var(--or-peach);
   margin-top: 20px;
@@ -271,6 +306,8 @@
   position: relative;
   overflow: hidden;
   min-height: 180px;
+  border: 1px solid var(--or-line);
+  border-radius: 12px;
 }
 .or-post .or-mono {
   color: var(--or-orange);
@@ -293,31 +330,9 @@
   position: relative;
   z-index: 1;
 }
+/* Ring artwork removed with the rest of the decorative filler. */
 .or-post-lines {
-  position: absolute;
-  width: 160px;
-  height: 200px;
-  right: -65px;
-  top: 10px;
-  transform: rotate(30deg);
-}
-.or-post-lines i {
-  position: absolute;
-  inset: 0;
-  border: 1px solid #d7af8f;
-  border-radius: 80px;
-}
-.or-post-lines i:nth-child(2) {
-  inset: 12px;
-}
-.or-post-lines i:nth-child(3) {
-  inset: 24px;
-}
-.or-post-lines i:nth-child(4) {
-  inset: 36px;
-}
-.or-post-lines i:nth-child(5) {
-  inset: 48px;
+  display: none;
 }
 .or-comment {
   display: flex;
@@ -329,7 +344,7 @@
   width: 28px;
   height: 28px;
   font-size: 11px;
-  background: #e5e6e1;
+  background: var(--or-line);
   color: var(--or-ink);
 }
 .or-comment strong {
@@ -357,7 +372,7 @@
 }
 .or-message {
   margin-left: 36px;
-  background: #f3f3ee;
+  background: var(--or-paper);
   padding: 16px;
   border-radius: 12px 12px 12px 0;
   font-size: 13px;
@@ -385,7 +400,7 @@
   color: var(--or-muted);
 }
 .or-delivered > span {
-  color: #166534;
+  color: var(--or-success);
 }
 .or-preview figcaption {
   padding: 12px 20px;
@@ -403,16 +418,13 @@
   gap: 20px;
   padding-block: 24px;
   border-top: 1px solid var(--or-line);
-  font:
-    12px Menlo,
-    Consolas,
-    monospace;
+  font-size: 13px;
   color: var(--or-muted);
   margin-bottom: 60px;
 }
 .or-sheet {
   border: 1px solid var(--or-line);
-  border-radius: 24px;
+  border-radius: 16px;
   overflow: clip;
 }
 .or-section {
@@ -459,12 +471,12 @@
   gap: 20px;
 }
 .or-step-number {
-  font:
-    12px Menlo,
-    Consolas,
-    monospace;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
   color: var(--or-orange);
-  padding-top: 4px;
+  padding-top: 3px;
+  min-width: 20px;
 }
 .or-steps p {
   margin-top: 8px !important;
@@ -491,7 +503,7 @@
   margin-top: 8px !important;
 }
 .or-technical {
-  background: var(--or-ink);
+  background: var(--or-navy);
   color: white;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -499,16 +511,17 @@
   padding: 48px 40px;
 }
 .or-technical .or-eyebrow {
-  color: #e7b591;
+  color: #93b4f5;
 }
 .or-technical p:not(.or-eyebrow) {
   margin-top: 20px;
-  color: #bdbdb5;
+  color: #aab8d0;
   font-size: 14px;
   line-height: 1.7;
 }
 .or-technical .or-text-link {
   margin-top: 24px;
+  color: white;
 }
 .or-runtime {
   display: grid;
@@ -518,12 +531,12 @@
 .or-runtime > div {
   display: grid;
   grid-template-columns: 1fr 1.4fr;
-  border-bottom: 1px solid #4a4a43;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   padding-bottom: 20px;
   gap: 6px 20px;
 }
 .or-runtime .or-mono {
-  color: #bdbdb5;
+  color: #aab8d0;
   grid-row: span 2;
 }
 .or-runtime strong {
@@ -532,7 +545,7 @@
 }
 .or-runtime div > span:last-child {
   font-size: 12px;
-  color: #bdbdb5;
+  color: #8c9cb6;
 }
 .or-provider-grid {
   display: grid;
@@ -689,11 +702,15 @@
     min-height: 72px;
     gap: 12px;
   }
-  .or-nav nav a:not(.or-stars) {
+  .or-nav nav a:not(:last-child) {
     display: none;
   }
   .or-wordmark {
     font-size: 22px;
+  }
+  .or-wordmark-mark {
+    width: 23px;
+    height: 23px;
   }
   .or-button-small {
     padding: 9px 12px;

@@ -2,6 +2,9 @@
 
 > **For agentic workers:** Use subagent-driven-development or executing-plans task by task.
 
+> **Historical record.** Dated implementation plan from 2026-09-08, kept as-is.
+> The product was named OpenReply at the time and is now CheckDM.
+
 **Goal:** Add an optional Zernio Instagram provider and contextual sponsor onboarding.
 **Architecture:** Preserve OpenReply's campaign engine and direct Meta support. Store provider identity on InstagramAccount and credentials in a workspace-owned ZernioConnection; map normalized Zernio events into existing queue events.
 **Tech Stack:** Next.js 16, React 19, Prisma 7/PostgreSQL, BullMQ/Redis, Vitest.

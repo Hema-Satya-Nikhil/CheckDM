@@ -1,7 +1,8 @@
 {
-  "name": "openreply",
+  "name": "checkdm",
   "version": "0.1.0",
   "private": true,
+  "description": "Turn comments into conversations. Self-hosted comment-to-DM engine for Instagram.",
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
@@ -10,7 +11,7 @@
     "lint": "eslint",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
-    "worker": "tsx worker/dm-worker.ts",
+    "worker": "tsx --env-file-if-exists=.env worker/dm-worker.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },

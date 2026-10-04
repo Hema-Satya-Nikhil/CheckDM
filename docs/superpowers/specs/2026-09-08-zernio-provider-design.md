@@ -1,5 +1,8 @@
 # Optional Zernio connection provider
 
+> **Historical record.** Dated design spec from 2026-09-08, kept as-is. The
+> product was named OpenReply at the time and is now CheckDM.
+
 OpenReply remains self-hosted and owns campaigns, keyword matching, follow gates, queues, retries, logs, tracking and its inbox UI. Zernio optionally handles Instagram connections, platform credentials, API calls and incoming events. Direct Meta remains available. Existing accounts are never silently migrated.
 
 ## Onboarding

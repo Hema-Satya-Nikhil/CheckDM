@@ -416,3 +416,27 @@ model PostbackDelivery {
   id String @id
   createdAt DateTime @default(now())
 }
+
+// Durable, database-enforced claim for one outbound leg of one comment.
+//
+// The DmLog row records that a comment was handled, but it cannot stop two
+// workers that both read it before either wrote: both would see "not sent yet"
+// and both would call the provider. This row is the atomic boundary instead.
+// Both racers attempt the INSERT and the composite primary key lets exactly one
+// win, so the loser performs no external call at all.
+//
+// A successful send keeps its claim permanently, so the guarantee survives
+// queue eviction, worker restarts and repeated webhook deliveries instead of
+// expiring after some window.
+model CommentDelivery {
+  automationId String
+  commentId    String
+  // Which outbound action this claim covers: "public-reply" or "private-reply".
+  // The legs claim separately so a failed public reply can still be retried
+  // after the DM has already gone out.
+  leg          String
+  createdAt    DateTime @default(now())
+
+  @@id([automationId, commentId, leg])
+  @@index([automationId, commentId])
+}

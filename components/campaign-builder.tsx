@@ -647,7 +647,7 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={t("e.g. YC referral")}
-            className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-zinc-500 focus:border-accent/40 focus:outline-none"
+            className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-subtle focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
             maxLength={100}
           />
           {accounts.length > 1 && (
@@ -712,7 +712,7 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
                 value={keywordText}
                 onChange={(e) => setKeywordText(e.target.value)}
                 placeholder={t("Enter a word or multiple")}
-                className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-zinc-500 focus:border-accent/40 focus:outline-none"
+                className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-subtle focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
               />
               <p className="text-xs text-muted">{t("Use commas to separate words")}</p>
             </div>
@@ -762,7 +762,7 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
                     }
                     placeholder={t("Sent you a DM! 📩")}
                     maxLength={1000}
-                    className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-zinc-500 focus:border-accent/40 focus:outline-none"
+                    className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-subtle focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
                   />
                   {publicReplyMessages.length > 1 && (
                     <button
@@ -814,14 +814,14 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
                   onChange={(e) => setOpeningDmMessage(e.target.value)}
                   placeholder={t("Hey there! I'm so happy you're here 😊")}
                   rows={3}
-                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-zinc-500 focus:border-accent/40 focus:outline-none resize-none"
+                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-subtle focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 resize-none"
                   maxLength={1000}
                 />
                 <input
                   value={openingDmButtonLabel}
                   onChange={(e) => setOpeningDmButtonLabel(e.target.value)}
                   placeholder={t("Send me the link")}
-                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-zinc-500 focus:border-accent/40 focus:outline-none"
+                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-subtle focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
                   maxLength={64}
                 />
               </div>
@@ -844,14 +844,14 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
                   onChange={(e) => setFollowPromptMessage(e.target.value)}
                   placeholder={t("quick favor before i send your link. i don't make any money from this, it's free. if you want to support me, just don't unfollow after, and star the repo on github if it helps you. tap the button once you're following and i'll send it over")}
                   rows={3}
-                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-zinc-500 focus:border-accent/40 focus:outline-none resize-none"
+                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-subtle focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 resize-none"
                   maxLength={1000}
                 />
                 <input
                   value={followPromptButtonLabel}
                   onChange={(e) => setFollowPromptButtonLabel(e.target.value)}
                   placeholder={t("i'm following")}
-                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-zinc-500 focus:border-accent/40 focus:outline-none"
+                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-subtle focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
                   maxLength={20}
                 />
                 <p className="text-xs text-muted">
@@ -870,7 +870,7 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
               onChange={(e) => setDmMessage(e.target.value)}
               placeholder={t("Write a message")}
               rows={3}
-              className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-zinc-500 focus:border-accent/40 focus:outline-none resize-none"
+              className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-subtle focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 resize-none"
               maxLength={1000}
             />
             {linkOpen ? (
@@ -880,14 +880,14 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
                   onChange={(e) => setTrackedDestinationUrl(e.target.value)}
                   onBlur={ensureLinkToken}
                   placeholder="https://yourlink.com/offer"
-                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-zinc-500 focus:border-accent/40 focus:outline-none"
+                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-subtle focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
                 />
                 <input
                   value={linkButtonLabel}
                   onChange={(e) => setLinkButtonLabel(e.target.value)}
                   placeholder={t("Button label (e.g. Open link)")}
                   maxLength={20}
-                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-zinc-500 focus:border-accent/40 focus:outline-none"
+                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-subtle focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
                 />
                 {secondLinkOpen ? (
                   <div className="space-y-2 border-t border-border pt-2">
@@ -895,14 +895,14 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
                       value={secondaryDestinationUrl}
                       onChange={(e) => setSecondaryDestinationUrl(e.target.value)}
                       placeholder="https://yourlink.com/second"
-                      className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-zinc-500 focus:border-accent/40 focus:outline-none"
+                      className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-subtle focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
                     />
                     <input
                       value={secondaryButtonLabel}
                       onChange={(e) => setSecondaryButtonLabel(e.target.value)}
                       placeholder={t("Second button label")}
                       maxLength={20}
-                      className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-zinc-500 focus:border-accent/40 focus:outline-none"
+                      className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-subtle focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
                     />
                   </div>
                 ) : (
@@ -945,7 +945,7 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
                   onChange={(e) => setFollowUpMessage(e.target.value)}
                   placeholder={t("Btw just wanted to say thanks for following me, I appreciate the support 🙌")}
                   rows={3}
-                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-zinc-500 focus:border-accent/40 focus:outline-none resize-none"
+                  className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-subtle focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20 resize-none"
                   maxLength={1000}
                 />
                 <div className="flex flex-wrap items-center gap-2 text-sm text-foreground">
@@ -960,7 +960,7 @@ export default function CampaignBuilder({ mode, campaignId }: CampaignBuilderPro
                         Math.max(0, Math.min(1440, Math.floor(Number(e.target.value) || 0)))
                       )
                     }
-                    className="w-20 rounded-lg border border-border bg-surface px-2 py-1 text-sm text-foreground focus:border-accent/40 focus:outline-none"
+                    className="w-20 rounded-lg border border-border bg-surface px-2 py-1 text-sm text-foreground focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
                   />
                   <span className="text-xs text-muted">
                     {t("minutes after the link")}

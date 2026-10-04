@@ -5,7 +5,7 @@ import TemplateVisual from "@/components/template-visual";
 import { CAMPAIGN_TEMPLATES } from "@/lib/templates/campaign-templates";
 
 export const metadata: Metadata = {
-  title: "Instagram Comment to DM Templates - OpenReply",
+  title: "Instagram Comment to DM Templates - CheckDM",
   description:
     "Copy ready-to-launch Instagram comment-to-DM campaign templates for product links, lead magnets, real estate, fitness, restaurants, events, and creators.",
   keywords: [
@@ -21,29 +21,26 @@ export default function TemplatesPage() {
     <main className="min-h-screen bg-background text-foreground">
       <PublicSiteHeader active="templates" />
 
-      <section className="border-b border-white/10 bg-zinc-950/55">
-        <div className="mx-auto grid w-full max-w-7xl gap-10 px-5 py-16 sm:px-6 lg:grid-cols-[0.88fr_1.12fr] lg:px-8 lg:py-20">
+      <section className="bg-navy-900">
+        <div className="mx-auto grid w-full max-w-6xl gap-10 px-5 py-16 sm:px-6 lg:grid-cols-[0.88fr_1.12fr] lg:px-8 lg:py-20">
           <div>
-            <p className="text-sm font-bold uppercase tracking-wide text-cyan-200">
+            <p className="text-sm font-medium text-accent">
               Public template library
             </p>
-            <h1 className="mt-4 text-5xl font-black leading-[1.02] text-white sm:text-6xl">
+            <h1 className="mt-3 text-4xl font-semibold leading-[1.05] tracking-[-0.03em] text-white sm:text-5xl">
               Instagram campaigns you can copy in minutes
             </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-zinc-300">
-              Start with proven comment-to-DM playbooks for lead magnets,
-              product links, events, service menus, and agency client campaigns.
+            <p className="mt-5 max-w-2xl text-base leading-8 text-zinc-300">
+              Start with proven comment-to-DM playbooks for lead magnets, product
+              links, events, service menus, and agency client campaigns.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/login"
-                className="inline-flex items-center justify-center bg-cyan-300 px-6 py-3 text-sm font-bold text-zinc-950 transition hover:bg-cyan-200"
-              >
+              <Link href="/login" className="btn btn-primary">
                 Start free
               </Link>
               <a
                 href="#template-grid"
-                className="inline-flex items-center justify-center border border-white/10 bg-white/[0.04] px-6 py-3 text-sm font-bold text-white transition hover:border-white/20 hover:bg-white/[0.08]"
+                className="btn border-white/25 bg-transparent text-white hover:bg-white/10"
               >
                 Browse templates
               </a>
@@ -60,31 +57,31 @@ export default function TemplatesPage() {
 
       <section
         id="template-grid"
-        className="mx-auto w-full max-w-7xl px-5 py-16 sm:px-6 lg:px-8"
+        className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-6 lg:px-8"
       >
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {CAMPAIGN_TEMPLATES.map((template) => (
             <article
               key={template.slug}
-              className="flex min-h-full flex-col border border-white/10 bg-white/[0.035] p-5 transition hover:border-white/20 hover:bg-white/[0.055]"
+              className="flex min-h-full flex-col rounded-[var(--radius-card)] border border-border bg-surface p-5 transition-colors hover:border-border-hover"
             >
               <div className="mb-5">
                 <TemplateVisual template={template} compact />
               </div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-cyan-200">
+              <p className="text-xs font-medium uppercase tracking-wide text-accent">
                 {template.category}
               </p>
-              <h2 className="mt-3 text-xl font-black leading-tight text-white">
+              <h2 className="mt-2 text-lg font-semibold leading-tight tracking-[-0.01em]">
                 {template.title}
               </h2>
-              <p className="mt-3 text-sm leading-6 text-zinc-400">
+              <p className="mt-3 text-sm leading-6 text-muted">
                 {template.summary}
               </p>
               <div className="mt-5 flex flex-wrap gap-2">
                 {template.keywords.map((keyword) => (
                   <span
                     key={keyword}
-                    className="border border-white/10 bg-zinc-950 px-2 py-1 text-xs font-semibold text-zinc-300"
+                    className="rounded-[var(--radius-control)] border border-border bg-background px-2 py-1 text-xs font-medium text-muted"
                   >
                     {keyword}
                   </span>
@@ -93,13 +90,13 @@ export default function TemplatesPage() {
               <div className="mt-auto grid gap-2 pt-6">
                 <Link
                   href={`/templates/${template.slug}`}
-                  className="inline-flex w-full items-center justify-center border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-bold text-white transition hover:border-white/20 hover:bg-white/[0.08]"
+                  className="btn btn-secondary w-full"
                 >
                   View playbook
                 </Link>
                 <Link
                   href={`/login?template=${template.slug}`}
-                  className="inline-flex w-full items-center justify-center bg-cyan-300 px-4 py-3 text-sm font-bold text-zinc-950 transition hover:bg-cyan-200"
+                  className="btn btn-primary w-full"
                 >
                   Use this template
                 </Link>

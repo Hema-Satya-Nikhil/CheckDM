@@ -119,10 +119,11 @@ export async function GET(request: NextRequest) {
       })
       .catch(() => {});
 
-    return NextResponse.redirect(
-      `${baseUrl}/settings?instagram=failed&reason=${encodeURIComponent(
-        message.slice(0, 200)
-      )}`
-    );
+    // The raw reason deliberately stays out of the redirect. A query string
+    // lands in browser history, proxy access logs and Referer headers, and this
+    // error text carries Meta API codes, fbtrace ids and endpoint paths. The
+    // full detail is already in the operational event above, and the settings
+    // page shows a plain-language message from `instagram=failed` alone.
+    return NextResponse.redirect(`${baseUrl}/settings?instagram=failed`);
   }
 }

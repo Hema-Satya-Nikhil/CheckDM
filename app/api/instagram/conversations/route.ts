@@ -7,6 +7,7 @@ import {
   MetaApiError,
 } from "@/lib/instagram/provider";
 import { createInstagramContext } from "@/lib/instagram/provider";
+import { toUserFacingProviderMessage } from "@/lib/meta/user-message";
 
 export interface ConversationListItem {
   id: string;
@@ -87,11 +88,13 @@ export async function GET(request: NextRequest) {
     };
     return NextResponse.json({ success: true, data });
   } catch (err) {
+    // The full error, including Meta's code, path and trace id, stays in the
+    // server log above; the client only gets the actionable sentence.
     console.error("[Conversations] Error:", err);
     const message =
       err instanceof MetaApiError
-        ? err.message
-        : "Failed to load conversations";
+        ? toUserFacingProviderMessage(err.message)
+        : "Failed to load conversations. Check that your Instagram account is still connected.";
     return NextResponse.json(
       { success: false, error: message },
       { status: 500 }
@@ -153,10 +156,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, data: result });
   } catch (err) {
     console.error("[Conversations] Send error:", err);
-    // Surface Meta's own message — the common case is the 24-hour messaging
-    // window having closed, which the user needs to see explicitly.
+    // Surface Meta's own sentence — the common case is the 24-hour messaging
+    // window having closed, which the user needs to see explicitly — but not
+    // the operator-only path/code/trace tail appended to it.
     const message =
-      err instanceof MetaApiError ? err.message : "Failed to send message";
+      err instanceof MetaApiError
+        ? toUserFacingProviderMessage(err.message)
+        : "Failed to send message. Try again in a moment.";
     return NextResponse.json(
       { success: false, error: message },
       { status: 502 }

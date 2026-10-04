@@ -81,10 +81,31 @@ export async function GET() {
     );
   }
 
+  // A pending invitation's token is a working credential: anyone holding the
+  // invite URL can claim a seat in this workspace. A plain MEMBER cannot create
+  // invitations, so letting one read the tokens would be a privilege escalation
+  // (share the link, add yourself as ADMIN). Owners and admins, who can already
+  // mint invitations, keep the full view.
+  const mayManage = canManageWorkspace(context.role);
+  const payload = await getMemberPayload(context.workspaceId, context.role);
+
+  if (mayManage) {
+    return NextResponse.json({ success: true, data: payload });
+  }
+
   return NextResponse.json({
     success: true,
     data: {
-      ...(await getMemberPayload(context.workspaceId, context.role)),
+      ...payload,
+      // Keep the list so the UI can still render "invited" rows, but rebuild
+      // each entry without the token or the URL derived from it.
+      invitations: payload.invitations.map((invitation) => ({
+        id: invitation.id,
+        email: invitation.email,
+        role: invitation.role,
+        expiresAt: invitation.expiresAt,
+        createdAt: invitation.createdAt,
+      })),
     },
   });
 }

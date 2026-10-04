@@ -19,6 +19,8 @@ on:
 
 env:
   REGISTRY: docker.io
+  # The published image name. It stays `openreply` so existing `docker pull`
+  # users keep working; changing it would orphan the published image.
   IMAGE_NAME: openreply
 
 jobs:

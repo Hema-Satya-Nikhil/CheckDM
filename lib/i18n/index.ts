@@ -1,5 +1,7 @@
 import zhTW from "./zh-TW.json";
 
+// Pre-rebrand cookie name, kept so returning visitors keep their saved
+// language instead of falling back to English.
 export const LOCALE_COOKIE = "openreply-locale";
 export type Locale = "en" | "zh-TW";
 export type MessageKey = keyof typeof zhTW;

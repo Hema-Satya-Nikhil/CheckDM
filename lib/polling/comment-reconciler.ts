@@ -38,6 +38,7 @@ import {
   type InstagramContext,
 } from "@/lib/instagram/provider";
 import { matchKeywords } from "@/lib/utils/keyword-matcher";
+import { isSelfAuthoredComment } from "@/lib/instagram/self-authored";
 
 // Only consider comments from the last few days — older ones are outside
 // Instagram's private-reply window anyway, so a DM to them would just fail.
@@ -206,7 +207,22 @@ async function sweepCampaign({
     // keyword, and (c) have no reply from the account owner yet.
     const needsAction = comments.filter((c) => {
       const authorId = c.from?.id;
-      if (!authorId || authorId === account.instagramId) return false;
+      if (!authorId) return false;
+
+      // The account's own comments must never be swept, or the worker would
+      // answer our own public replies and each of those answers would be echoed
+      // back in turn. The username check covers providers that report authors
+      // in a different id space than the connected account's.
+      if (
+        isSelfAuthoredComment({
+          commenterId: authorId,
+          commenterName: c.from?.username,
+          selfInstagramId: account.instagramId,
+          selfUsername: account.username,
+        })
+      ) {
+        return false;
+      }
 
       const matched = automation.matchAnyWord
         ? true
@@ -219,7 +235,14 @@ async function sweepCampaign({
       stat.matched += 1;
 
       const ownerReplied = (c.replies?.data ?? []).some(
-        (r) => r.from?.id === account.instagramId
+        (r) =>
+          r.from?.id === account.instagramId ||
+          isSelfAuthoredComment({
+            commenterId: r.from?.id,
+            commenterName: r.from?.username,
+            selfInstagramId: account.instagramId,
+            selfUsername: account.username,
+          })
       );
       if (ownerReplied) {
         stat.alreadyReplied += 1;

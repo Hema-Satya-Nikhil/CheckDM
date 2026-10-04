@@ -319,7 +319,7 @@ export default function CampaignsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t("Search campaigns by name, keyword, or message…")}
-            className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-zinc-500 focus:border-accent/40 focus:outline-none"
+            className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-subtle focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
           />
           <div className="inline-flex shrink-0 rounded-lg bg-surface p-1">
             {(["all", "active", "paused"] as const).map((s) => (
@@ -466,13 +466,13 @@ export default function CampaignsPage() {
 
                 {/* Tracked link sent */}
                 {auto.trackedLinks[0]?.trackedUrl && (
-                  <p className="mt-2 truncate font-mono text-xs text-zinc-500">
+                  <p className="mt-2 truncate font-mono text-xs text-muted">
                     {auto.trackedLinks[0].trackedUrl}
                   </p>
                 )}
 
                 {/* Stats */}
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3 text-xs text-zinc-500">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-3 text-xs text-muted">
                   <span className="font-medium text-foreground">
                     {auto._count.dmLogs} {t("runs")}
                   </span>

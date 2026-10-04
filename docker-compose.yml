@@ -1,10 +1,12 @@
-# OpenReply — Local Development Services
+# CheckDM — Local Development Services
 # Run: docker-compose up -d
 
 services:
   postgres:
     image: postgres:16
     environment:
+      # The database name stays `openreply`. It is the name the existing local
+      # volume was created with, so renaming it would orphan that data.
       POSTGRES_DB: openreply
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres

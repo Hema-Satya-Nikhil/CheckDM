@@ -32,6 +32,7 @@ import {
   type InstagramContext,
 } from "@/lib/instagram/provider";
 import { matchKeywords } from "@/lib/utils/keyword-matcher";
+import { isSelfAuthoredComment } from "@/lib/instagram/self-authored";
 import { reserveDMSlot, releaseDMSlot } from "@/lib/utils/rate-limiter";
 import {
   releaseWorkspaceDMReservation,
@@ -217,6 +218,77 @@ function connectionScope(data: DmQueueJob) {
   return data.accountConnectionId ? { instagramAccountId: data.accountConnectionId } : {};
 }
 
+/** Outbound legs of a single comment, claimed independently of each other. */
+const PUBLIC_REPLY_LEG = "public-reply";
+const PRIVATE_REPLY_LEG = "private-reply";
+
+type CommentLegClaim =
+  | { outcome: "SENT" }
+  | { outcome: "ALREADY_PROCESSED" }
+  | { outcome: "FAILED"; error: unknown };
+
+function isUniqueViolation(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === "P2002"
+  );
+}
+
+/**
+ * Perform at most one outbound action per (automation, comment, leg), across
+ * duplicate webhook deliveries, duplicate queue jobs, concurrent workers and
+ * worker restarts.
+ *
+ * The claim is a row insert guarded by a composite primary key, so the database
+ * — not a stale in-memory read — decides the winner. Two workers that both saw
+ * "not sent yet" can no longer both call the provider: the loser's INSERT hits
+ * the unique constraint and it performs no external call at all.
+ *
+* A successful send keeps its claim permanently, so the guarantee does not
+ * expire with a time window or with BullMQ job retention. A failed send releases
+ * its claim, leaving the existing retry behaviour (BullMQ attempts, plus the
+ * publicReplySentAt / dmSentAt completion markers) exactly as it was: this
+ * change adds concurrency safety and does not alter when a retry happens.
+ *
+ * Mirrors sendPostbackOnce's durable-claim idea for the comment path.
+ */
+async function sendCommentLegOnce({
+  automationId,
+  commentId,
+  leg,
+  send,
+}: {
+  automationId: string;
+  commentId: string;
+  leg: string;
+  send: () => Promise<unknown>;
+}): Promise<CommentLegClaim> {
+  try {
+    await prisma.commentDelivery.create({
+      data: { automationId, commentId, leg },
+    });
+  } catch (error) {
+    if (isUniqueViolation(error)) return { outcome: "ALREADY_PROCESSED" };
+    throw error;
+  }
+
+  try {
+    await send();
+    return { outcome: "SENT" };
+  } catch (error) {
+    // Release the claim so a later retry of this leg remains possible, exactly
+    // as it was before the claim existed.
+    await prisma.commentDelivery
+      .delete({
+        where: { automationId_commentId_leg: { automationId, commentId, leg } },
+      })
+      .catch(() => {});
+    return { outcome: "FAILED", error };
+  }
+}
+
 async function processComment(job: Job<ProcessCommentJob>): Promise<void> {
   const {
     instagramAccountId,
@@ -228,6 +300,36 @@ async function processComment(job: Job<ProcessCommentJob>): Promise<void> {
     originalMediaId,
   } = job.data;
   const requeueAttempt = job.data.requeueAttempt ?? 0;
+
+  // Defense in depth for the self-reply guard.
+  //
+  // Ingestion (process-webhook) and the polling sweep both drop the connected
+  // account's own events before a job exists, and that is where the guard
+  // belongs. This check exists because a job is not a trustworthy boundary:
+  // anything already sitting in Redis from before the guard shipped, or added by
+  // a future path that forgets to filter, would otherwise reach the campaign
+  // matcher and the provider with no protection left. A `matchAnyWord` campaign
+  // matches every comment, so the keyword matcher offers no backstop at all.
+  //
+  // This is not theoretical. In the live Zernio feed the account's own public
+  // replies come back as inbound comment events and were, before the guard, sent
+  // 43 DMs to the account itself in a one-minute burst. The guard is enforced
+  // here too so that class of job can never reach a send again.
+  const selfAccount = await prisma.instagramAccount.findUnique({
+    where: { instagramId: instagramAccountId },
+    select: { instagramId: true, username: true },
+  });
+  if (
+    selfAccount &&
+    isSelfAuthoredComment({
+      commenterId,
+      commenterName,
+      selfInstagramId: selfAccount.instagramId,
+      selfUsername: selfAccount.username,
+    })
+  ) {
+    return;
+  }
 
   const automations = await prisma.automation.findMany({
     where: {
@@ -365,20 +467,28 @@ async function processComment(job: Job<ProcessCommentJob>): Promise<void> {
     // Only (re)set PENDING when the DM will actually be attempted, so a prior
     // SENT is never clobbered while we come back just to retry the public reply.
     if (!existingLog) {
-      await prisma.dmLog.create({
-        data: {
-          workspaceId: automation.workspaceId,
-          automationId: automation.id,
-          instagramAccountId: automation.instagramAccountId,
-          commenterId,
-          commenterName,
-          commentText,
-          commentId,
-          matchedKeyword: matchResult.matchedKeyword,
-          status: "PENDING",
-          attempts: job.attemptsMade + 1,
-        },
-      });
+      // Two workers can reach this point together. The unique constraint on
+      // (automationId, commentId) means one insert wins; treat the loser's
+      // violation as "a peer owns this row" rather than a failure, so a
+      // duplicate delivery cannot turn into a retry storm.
+      try {
+        await prisma.dmLog.create({
+          data: {
+            workspaceId: automation.workspaceId,
+            automationId: automation.id,
+            instagramAccountId: automation.instagramAccountId,
+            commenterId,
+            commenterName,
+            commentText,
+            commentId,
+            matchedKeyword: matchResult.matchedKeyword,
+            status: "PENDING",
+            attempts: job.attemptsMade + 1,
+          },
+        });
+      } catch (error) {
+        if (!isUniqueViolation(error)) throw error;
+      }
     } else if (needsDm) {
       await prisma.dmLog.update({
         where: {
@@ -395,7 +505,8 @@ async function processComment(job: Job<ProcessCommentJob>): Promise<void> {
 
     // Public reply leg — decoupled from the DM and posted first so a DM failure
     // (e.g. a non-follower whose messaging is restricted) never suppresses it.
-    // Idempotent across retries via publicReplySentAt.
+    // Idempotent across retries via publicReplySentAt, and across concurrent
+    // workers via the durable public-reply claim.
     const replyPool =
       automation.publicReplyMessages.length > 0
         ? automation.publicReplyMessages
@@ -408,29 +519,37 @@ async function processComment(job: Job<ProcessCommentJob>): Promise<void> {
       !existingLog?.publicReplySentAt &&
       !existingLog?.publicReplyDeliveryUnconfirmed
     ) {
-      try {
-        const chosen = replyPool[Math.floor(Math.random() * replyPool.length)];
-        const publicReply = renderMessageWithTracking({
-          message: chosen,
-          commenterName,
-          trackedLinks: automation.trackedLinks,
-        });
-        await sendCommentReply({
-          context: accessToken,
-          commentId: commentId,
-          message: publicReply,
-          postId: mediaId,
-        });
+      const chosen = replyPool[Math.floor(Math.random() * replyPool.length)];
+      const publicReply = renderMessageWithTracking({
+        message: chosen,
+        commenterName,
+        trackedLinks: automation.trackedLinks,
+      });
+
+      const claim = await sendCommentLegOnce({
+        automationId: automation.id,
+        commentId,
+        leg: PUBLIC_REPLY_LEG,
+        send: () =>
+          sendCommentReply({
+            context: accessToken,
+            commentId: commentId,
+            message: publicReply,
+            postId: mediaId,
+          }),
+      });
+
+      if (claim.outcome === "SENT") {
         await prisma.dmLog.update({
           where: {
             automationId_commentId: { automationId: automation.id, commentId },
           },
           data: { publicReplySentAt: new Date(), publicReplyError: null },
         });
-      } catch (error) {
+      } else if (claim.outcome === "FAILED") {
         console.error(
           "[DM Worker] Public comment reply failed:",
-          formatError(error)
+          formatError(claim.error)
         );
         await prisma.dmLog
           .update({
@@ -440,10 +559,16 @@ async function processComment(job: Job<ProcessCommentJob>): Promise<void> {
                 commentId,
               },
             },
-            data: { publicReplyError: formatError(error), publicReplyDeliveryUnconfirmed: error instanceof ZernioDeliveryUnconfirmedError },
+            data: {
+              publicReplyError: formatError(claim.error),
+              publicReplyDeliveryUnconfirmed:
+                claim.error instanceof ZernioDeliveryUnconfirmedError,
+            },
           })
           .catch(() => {});
       }
+      // ALREADY_PROCESSED: this leg is claimed or was completed by another
+      // worker. It owns the outcome, so nothing is written here.
     }
 
     // DM already sent on an earlier pass; the public reply retry above was all
@@ -600,7 +725,15 @@ async function processComment(job: Job<ProcessCommentJob>): Promise<void> {
           : alreadyFollows !== true;
     }
 
-    try {
+    // Instagram allows one private reply per comment, and this leg can be
+    // reached by a duplicate webhook delivery, a duplicate queue job or a
+    // second worker. The claim is taken immediately before the provider call so
+    // exactly one of them can send.
+    const dmClaim = await sendCommentLegOnce({
+      automationId: automation.id,
+      commentId,
+      leg: PRIVATE_REPLY_LEG,
+      send: async () => {
       if (useOpeningDm) {
         const openingText = renderMessageWithTracking({
           message: automation.openingDmMessage as string,
@@ -700,7 +833,10 @@ async function processComment(job: Job<ProcessCommentJob>): Promise<void> {
           postId: mediaId,
         });
       }
+      },
+    });
 
+    if (dmClaim.outcome === "SENT") {
       await prisma.dmLog.update({
         where: {
           automationId_commentId: {
@@ -714,7 +850,18 @@ async function processComment(job: Job<ProcessCommentJob>): Promise<void> {
           errorMessage: null,
         },
       });
-    } catch (error) {
+    } else if (dmClaim.outcome === "ALREADY_PROCESSED") {
+      // Another worker owns or already performed this leg. It owns the recorded
+      // outcome, so nothing is overwritten here; only this run's reservations
+      // are handed back, since no message went out on our side.
+      if (rateLimit?.reserved) {
+        await releaseDMSlot(instagramAccountId);
+      }
+      await releaseWorkspaceDMReservation(
+        automation.workspaceId,
+        usage.periodStart
+      );
+    } else {
       // The rate slot was reserved before the send; this send did not deliver a
       // DM, so hand the slot back instead of burning it (and burning more on
       // each BullMQ retry) until the hourly TTL expires.
@@ -726,6 +873,9 @@ async function processComment(job: Job<ProcessCommentJob>): Promise<void> {
         usage.periodStart
       );
 
+      // The provider rejected this send, so this run delivered nothing. The claim was
+      // released, so BullMQ's retry reclaims and tries again — unchanged
+      // behaviour from before the claim existed.
       await prisma.dmLog.update({
         where: {
           automationId_commentId: {
@@ -736,11 +886,13 @@ async function processComment(job: Job<ProcessCommentJob>): Promise<void> {
         data: {
           status: "FAILED",
           attempts: job.attemptsMade + 1,
-          errorMessage: formatError(error),
-          dmDeliveryUnconfirmed: error instanceof ZernioDeliveryUnconfirmedError,
+          errorMessage: formatError(dmClaim.error),
+          dmDeliveryUnconfirmed:
+            dmClaim.error instanceof ZernioDeliveryUnconfirmedError,
         },
       });
-      throw error;
+
+      throw dmClaim.error;
     }
   }
 }
@@ -1113,6 +1265,26 @@ async function processFollowUp(job: Job<ProcessFollowUpJob>): Promise<void> {
  */
 async function processMessage(job: Job<ProcessMessageJob>): Promise<void> {
   const { instagramAccountId, messageId, messageText, senderId } = job.data;
+
+  // Same self-authored guard as the comment path. A DM this account sent itself
+  // can return as an inbound message, and a `matchAnyWord` campaign would
+  // otherwise answer it — the message-trigger twin of the comment echo loop.
+  // The message webhook carries only the sender's IGSID, which is the connected
+  // account's own `instagramId`, so the id comparison is authoritative here and
+  // no username fallback is needed.
+  const messageSelfAccount = await prisma.instagramAccount.findUnique({
+    where: { instagramId: instagramAccountId },
+    select: { instagramId: true },
+  });
+  if (
+    messageSelfAccount &&
+    isSelfAuthoredComment({
+      commenterId: senderId,
+      selfInstagramId: messageSelfAccount.instagramId,
+    })
+  ) {
+    return;
+  }
 
   const automations = await prisma.automation.findMany({
     where: {

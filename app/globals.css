@@ -1,39 +1,84 @@
 @import "tailwindcss";
 
-/* ManyChat Alternative — Design System
-   Plain and functional. No gradients, glass, glow, or animation. */
+/* CheckDM — Design System
+   Restrained navy + neutral with a single electric-blue accent.
+   Flat surfaces, hairline borders, small radii, and motion limited to
+   opacity/transform so the product reads calm rather than animated. */
 
 @theme inline {
+  /* Surfaces */
   --color-background: #ffffff;
-  --color-foreground: #18181b;
-  --color-surface: #f7f7f8;
-  --color-surface-hover: #efeff1;
-  --color-border: #e4e4e7;
-  --color-border-hover: #d4d4d8;
-  --color-muted: #71717a;
-  --color-accent: #f97316;
-  --color-accent-hover: #ea580c;
-  --color-success: #16a34a;
-  --color-error: #dc2626;
-  --color-warning: #d97706;
-  --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: ui-monospace, monospace;
+  --color-foreground: #0b1220;
+  --color-surface: #f6f8fb;
+  --color-surface-hover: #edf1f7;
+  --color-border: #e3e9f2;
+  --color-border-hover: #cbd5e4;
+
+  /* Text */
+  --color-muted: #5b6b84;
+  --color-subtle: #8494a8;
+
+  /* Accent — electric blue, used for primary actions and focus only. */
+  --color-accent: #1d4fd8;
+  --color-accent-hover: #1a43bc;
+  --color-accent-soft: #eef3fe;
+  --color-accent-border: #c7d7fb;
+
+  /* Navy — headers, dark panels, brand surfaces. */
+  --color-navy-900: #0a1526;
+  --color-navy-800: #10203a;
+  --color-navy-700: #1a3054;
+  --color-navy-600: #274068;
+
+  /* Status */
+  --color-success: #12805c;
+  --color-success-soft: #e8f5f0;
+  --color-error: #c4362f;
+  --color-error-soft: #fbedec;
+  --color-warning: #a9640b;
+  --color-warning-soft: #fdf3e3;
+
+  /* Shape — small, consistent radii. No oversized cards. */
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-pill: 999px;
+
+  /* Elevation — hairlines first, shadow only for genuinely floating layers. */
+  --shadow-card: 0 1px 2px rgba(11, 18, 32, 0.04), 0 1px 3px rgba(11, 18, 32, 0.06);
+  --shadow-raised: 0 4px 12px rgba(11, 18, 32, 0.08);
+  --shadow-pop: 0 12px 32px rgba(11, 18, 32, 0.12);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-slow: 280ms;
+
+  --font-sans: var(--font-geist), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", monospace;
 }
 
 html {
   color-scheme: light;
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--color-background);
   color: var(--color-foreground);
   font-family: var(--font-sans);
+  /* Metrics-aligned numerals keep data tables and stat tiles from shifting as
+     values change. */
+  font-feature-settings: "cv11", "ss01";
+  text-rendering: optimizeLegibility;
 }
 
-/* Focus ring — visible, for keyboard users. */
+/* Focus ring — always visible, and never removed. */
 :focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
 /* Form fields already have a border, so keep the focus ring hugging the
@@ -44,9 +89,8 @@ select:focus-visible {
   outline-offset: 1px;
 }
 
-/* iOS Safari zooms the whole page in when a focused field's text is under 16px,
-   and never zooms back out. Fields are text-sm (14px) throughout, so raise them
-   to 16px on phones and leave the desktop sizing alone. */
+/* iOS Safari zooms the page when a focused field's text is under 16px and
+   never zooms back out. Raise fields to 16px on phones only. */
 @media (max-width: 640px) {
   input,
   textarea,
@@ -55,14 +99,330 @@ select:focus-visible {
   }
 }
 
-/* Panel — flat container. Replaces .glass / .glass-strong. */
+::selection {
+  background: var(--color-accent-soft);
+  color: var(--color-navy-900);
+}
+
+/* ---------------------------------------------------------------------------
+   Reusable primitives
+   --------------------------------------------------------------------------- */
+
+/* Card — flat surface, hairline border, shadow only on hover for panels that
+   are meant to feel interactive. */
+.cd-card {
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+
+.cd-card-muted {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+
+/* Buttons — one visual weight per importance level. Transitions touch colour
+   and transform only, so nothing reflows. */
+.cd-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-control);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.cd-btn:active {
+  transform: translateY(1px);
+}
+
+.cd-btn:disabled,
+.cd-btn[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cd-btn-primary {
+  background: var(--color-accent);
+  color: #ffffff;
+  border-color: var(--color-accent);
+}
+.cd-btn-primary:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}
+
+.cd-btn-secondary {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  border-color: var(--color-border-hover);
+}
+.cd-btn-secondary:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-surface);
+  border-color: var(--color-subtle);
+}
+
+.cd-btn-ghost {
+  background: transparent;
+  color: var(--color-muted);
+  border-color: transparent;
+}
+.cd-btn-ghost:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-surface-hover);
+  color: var(--color-foreground);
+}
+
+.cd-btn-danger {
+  background: var(--color-background);
+  color: var(--color-error);
+  border-color: var(--color-border-hover);
+}
+.cd-btn-danger:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-error-soft);
+  border-color: var(--color-error);
+}
+
+.cd-btn-sm {
+  font-size: 0.8125rem;
+  padding: 0.3125rem 0.625rem;
+}
+
+/* Inputs */
+.cd-input {
+  width: 100%;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  border: 1px solid var(--color-border-hover);
+  border-radius: var(--radius-control);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.cd-input::placeholder {
+  color: var(--color-subtle);
+}
+
+.cd-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+textarea.cd-input {
+  min-height: 5.5rem;
+  resize: vertical;
+}
+
+.cd-label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-foreground);
+  margin-bottom: 0.375rem;
+}
+
+.cd-hint {
+  font-size: 0.75rem;
+  color: var(--color-muted);
+  margin-top: 0.375rem;
+}
+
+/* Badge */
+.cd-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-muted);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1rem;
+  padding: 0.0625rem 0.5rem;
+  white-space: nowrap;
+}
+
+/* Table */
+.cd-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.cd-table th {
+  text-align: left;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.cd-table td {
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.cd-table tbody tr {
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.cd-table tbody tr:hover {
+  background: var(--color-surface);
+}
+
+/* Section heading used across the dashboard and settings. */
+.cd-section-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-foreground);
+  letter-spacing: -0.01em;
+}
+
+.cd-section-subtitle {
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+  margin-top: 0.125rem;
+}
+
+/* Loading skeleton — a calm pulse, disabled under reduced motion. */
+.cd-skeleton {
+  background: var(--color-surface-hover);
+  border-radius: var(--radius-control);
+  animation: cd-pulse 1.6s var(--ease-in-out) infinite;
+}
+
+@keyframes cd-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* Empty state */
+.cd-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+  padding: 3rem 1.5rem;
+  border: 1px dashed var(--color-border-hover);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.cd-empty-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.cd-empty-body {
+  font-size: 0.875rem;
+  color: var(--color-muted);
+  max-width: 34rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Buttons — one shape, three intents. Kept as classes so every call site
+   stays consistent instead of each page re-deriving padding and radius.
+   --------------------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-control);
+  border: 1px solid transparent;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--color-accent);
+  color: #fff;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.btn-secondary {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  border-color: var(--color-border);
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-hover);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-muted);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  color: var(--color-foreground);
+}
+
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Legacy surface aliases, kept so existing markup degrades gracefully.
+   --------------------------------------------------------------------------- */
+
 .panel {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
 }
 
-/* Kept as no-op aliases so existing markup degrades to plain surfaces
-   instead of breaking. Prefer .panel in new code. */
 .glass,
 .glass-strong {
   background: var(--color-surface);
@@ -81,28 +441,44 @@ select:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
+/* Zernio sponsor tokens — third-party brand, deliberately left as-is. */
 @theme inline {
-  --color-zernio-coral: #EB3514;
-  --color-zernio-cream: #F0EFEB;
-  --color-zernio-border: #D9D8D3;
-  --color-zernio-charcoal: #2D2D2D;
+  --color-zernio-coral: #eb3514;
+  --color-zernio-cream: #f0efeb;
+  --color-zernio-border: #d9d8d3;
+  --color-zernio-charcoal: #2d2d2d;
 }
-.zernio-sponsor { background: var(--color-zernio-cream); color: var(--color-zernio-charcoal); border-color: var(--color-zernio-border); }
-.zernio-action { background: var(--color-zernio-coral); color: white; }
+.zernio-sponsor {
+  background: var(--color-zernio-cream);
+  color: var(--color-zernio-charcoal);
+  border-color: var(--color-zernio-border);
+}
+.zernio-action {
+  background: var(--color-zernio-coral);
+  color: white;
+}
 
 @font-face {
-  font-family: 'Zernio Geist';
-  src: url('/fonts/geist-latin.woff2') format('woff2');
+  font-family: "Zernio Geist";
+  src: url("/fonts/geist-latin.woff2") format("woff2");
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
-.zernio-sponsor { font-family: 'Zernio Geist', sans-serif; }
+.zernio-sponsor {
+  font-family: "Zernio Geist", sans-serif;
+}

@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db/client';
 import { getDMQueue, MESSAGE_JOB_NAME, POSTBACK_JOB_NAME } from '@/lib/queue/client';
 import { parseCommentEvents, parseMessageEvents, parsePostbackEvents, parseReadEvents } from '@/lib/meta/webhook';
+import { isSelfAuthoredComment } from '@/lib/instagram/self-authored';
 import { Prisma, type InstagramProvider } from '@/app/generated/prisma/client';
 
 const OPENING_DM_READ_FALLBACK_DELAY_MS = 5 * 60 * 1000;
@@ -12,7 +13,7 @@ export async function processInstagramWebhook({ payload: incoming, provider, wor
   if (incoming.object !== 'instagram' || !Array.isArray(incoming.entry)) return;
   const accounts = await prisma.instagramAccount.findMany({
     where: { instagramId: { in: incoming.entry.map(e => e.id) }, provider, ...(workspaceId ? { workspaceId } : {}) },
-    select: { id: true, instagramId: true, workspaceId: true },
+    select: { id: true, instagramId: true, workspaceId: true, username: true },
   });
   const accountMap = new Map(accounts.map(a => [a.instagramId, a]));
   const allowed = new Set(accountMap.keys());
@@ -39,6 +40,23 @@ export async function processInstagramWebhook({ payload: incoming, provider, wor
     for (const event of commentEvents) {
       const account = accountMap.get(event.instagramAccountId);
       if (!account) continue;
+
+      // Never act on the connected account's own comments. A provider echoes
+      // our own public replies back as inbound comment events, so without this
+      // an echo would be queued, matched, claimed and answered — and the reply
+      // to that reply would be echoed again. Skipping here means no job, no
+      // delivery claim and no provider send are ever created for a self-event,
+      // which is what makes the guard hold for `matchAnyWord` campaigns.
+      if (
+        isSelfAuthoredComment({
+          commenterId: event.commenterId,
+          commenterName: event.commenterName,
+          selfInstagramId: account.instagramId,
+          selfUsername: account.username,
+        })
+      ) {
+        continue;
+      }
 
       await queue.add(
         "process-comment",

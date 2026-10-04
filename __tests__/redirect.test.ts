@@ -77,4 +77,40 @@ describe("tracked link redirect route", () => {
     expect(response.headers.get("location")).toBe("https://manychat-alternative.com/");
     expect(mockPrisma.linkClick.create).not.toHaveBeenCalled();
   });
+
+  // A link saved before destination URLs were restricted can still hold a
+  // non-web scheme. Serving it would put that scheme in a `Location` header,
+  // so the redirect refuses it instead of forwarding it to the visitor.
+  const NON_WEB_DESTINATIONS = [
+    "javascript:alert(1)",
+    "data:text/html,<script>alert(1)</script>",
+    "file:///etc/passwd",
+  ];
+
+  for (const destinationUrl of NON_WEB_DESTINATIONS) {
+    it(`does not redirect to a stored ${destinationUrl} destination`, async () => {
+      mockPrisma.trackedLink.findUnique.mockResolvedValue({
+        id: "link_123",
+        workspaceId: "workspace_123",
+        automationId: "automation_123",
+        destinationUrl,
+        automation: { instagramAccountId: "instagram_account_123" },
+      });
+
+      const response = await GET(
+        new Request("https://manychat-alternative.com/r/abc123") as Parameters<
+          typeof GET
+        >[0],
+        { params: Promise.resolve({ slug: "abc123" }) }
+      );
+
+      expect(response.status).toBe(302);
+      expect(response.headers.get("location")).toBe(
+        "https://manychat-alternative.com/"
+      );
+      expect(response.headers.get("location")).not.toContain(destinationUrl);
+      // A destination that cannot be served is not a real click.
+      expect(mockPrisma.linkClick.create).not.toHaveBeenCalled();
+    });
+  }
 });

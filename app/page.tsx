@@ -2,49 +2,30 @@ import type { Metadata } from "next";
 import "./landing.css";
 import Link from "next/link";
 import Image from "next/image";
-import localFont from "next/font/local";
 import { DemoNotice } from "@/components/demo-notice";
+import { LogoMark } from "@/components/brand/logo";
 import { zernioLink } from "@/lib/zernio-links";
+import { CREATOR_NAME, CREATOR_URL } from "@/lib/brand";
 
-const geist = localFont({
-  src: "../public/fonts/geist-latin.woff2",
-  display: "swap",
-  weight: "100 900",
-});
-const GITHUB_URL = "https://github.com/diwenne/openreply";
-const SETUP_DOCS_URL = `${GITHUB_URL}/blob/main/docs/setup.md`;
-const ZERNIO_DOCS_URL = `${GITHUB_URL}/blob/main/docs/zernio.md`;
+const SOURCE_URL = "https://github.com/diwenne/openreply";
+const SETUP_DOCS_URL = `${SOURCE_URL}/blob/main/docs/setup.md`;
+const ZERNIO_DOCS_URL = `${SOURCE_URL}/blob/main/docs/zernio.md`;
 
-function formatStars(count: number): string {
-  if (count >= 1000) {
-    return `${(count / 1000).toFixed(1)}K`;
-  }
-  return count.toLocaleString();
-}
-
-const githubIconPath =
-  "M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z";
-
-async function getGitHubStars(): Promise<number | null> {
-  try {
-    const res = await fetch("https://api.github.com/repos/diwenne/openreply", {
-      headers: { Accept: "application/vnd.github+json" },
-      next: { revalidate: 3600 },
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as { stargazers_count?: number };
-    return typeof data.stargazers_count === "number"
-      ? data.stargazers_count
-      : null;
-  } catch {
-    return null;
-  }
+function Wordmark({ className = "or-wordmark" }: { className?: string }) {
+  return (
+    <span className={className}>
+      <LogoMark className="or-wordmark-mark" />
+      <span>
+        Check<span aria-hidden="true">DM</span>
+      </span>
+    </span>
+  );
 }
 
 export const metadata: Metadata = {
-  title: "OpenReply - Open source Instagram comment-to-DM automation",
+  title: "CheckDM — Instagram comment-to-DM automation",
   description:
-    "A free, self-hosted ManyChat alternative. Turn Instagram keyword comments into automatic private replies. Connect through your own Meta app or optional paid provider Zernio.",
+    "CheckDM turns Instagram comments into private replies. Match a keyword on a post or reel and send a DM automatically, with a delivery log for every send.",
 };
 
 function SponsorCredit({ placement }: { placement: string }) {
@@ -74,9 +55,7 @@ function ReplyPreview() {
       aria-label="Example campaign: a GUIDE comment triggers a private reply with a guide link"
     >
       <div className="or-preview-top">
-        <span className="or-wordmark">
-          OpenReply<span aria-hidden="true">↗</span>
-        </span>
+        <Wordmark />
         <span className="or-mono">Campaign preview</span>
       </div>
       <div className="or-preview-body">
@@ -95,13 +74,6 @@ function ReplyPreview() {
             <br />and I’ll send you the link.
           </p>
           <span>Keyword: GUIDE</span>
-          <div className="or-post-lines" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-            <i />
-            <i />
-          </div>
         </div>
         <div className="or-comment">
           <span className="or-avatar or-avatar-small">M</span>
@@ -139,22 +111,22 @@ function ReplyPreview() {
 
 const steps = [
   [
-    "Connect your account",
-    "Choose Zernio or your own Meta app, then connect an Instagram Business or Creator account.",
+    "Connect your Instagram",
+    "Choose Zernio or bring your own Meta app, then connect an Instagram Business or Creator account.",
   ],
   [
     "Set up a campaign",
-    "Pick a post or reel, add keywords, and write the private reply. Add a public reply or tracked link buttons if you need them.",
+    "Pick a post or reel, add your keywords, and write the private reply. Add a public reply or tracked link buttons when you need them.",
   ],
   [
-    "OpenReply handles the rest",
-    "Incoming events trigger your campaigns. A background worker queues, rate-limits, and logs each send, with retries and comment reconciliation.",
+    "CheckDM handles the rest",
+    "Incoming comments trigger your campaigns. A background worker queues, rate-limits and logs every send, with retries when something needs attention.",
   ],
 ];
 const features = [
   [
     "Custom reply messages",
-    "Write your own messages, personalize with a username, and use up to two tracked link buttons.",
+    "Write your own messages, personalise with a username, and use up to two tracked link buttons.",
   ],
   [
     "Multiple triggers",
@@ -162,49 +134,38 @@ const features = [
   ],
   [
     "Inbox",
-    "Read conversations and reply from OpenReply, within Instagram’s messaging window.",
+    "Read conversations and reply from one place, within Instagram’s messaging window.",
   ],
   [
     "Delivery logs",
-    "See sent, skipped, and failed messages, with reasons. Follow tracked link clicks back to a campaign.",
+    "See sent, skipped and failed messages with the reason for each, and follow link clicks back to the campaign.",
   ],
 ];
 
-export default async function Home() {
-  const stars = await getGitHubStars();
+export default function Home() {
   return (
-    <div id="top" className={`or-landing ${geist.className}`}>
+    <div id="top" className="or-landing">
       <a className="or-skip" href="#main">
         Skip to content
       </a>
       <DemoNotice variant="banner" />
       <header className="or-header">
         <div className="or-container or-nav">
-          <a className="or-wordmark" href="#top" aria-label="OpenReply home">
-            OpenReply
-          </a>
+          <Link href="/" aria-label="CheckDM home">
+            <Wordmark />
+          </Link>
           <nav aria-label="Main navigation">
             <a href="#how">How it works</a>
-            <a href="#setup">Self-host it</a>
-            <a
-              className="or-stars"
-              href={GITHUB_URL}
-              target="_blank"
-              rel="noreferrer"
-              aria-label="View OpenReply on GitHub"
-            >
-              <svg viewBox="0 0 16 16" aria-hidden="true">
-                <path d={githubIconPath} />
-              </svg>
-              {stars !== null && <span>{formatStars(stars)}</span>}
-            </a>
+            <a href="#features">Features</a>
+            <Link href="/templates">Templates</Link>
+            <a href="#setup">Get started</a>
           </nav>
           <div className="or-nav-cta">
             <a className="or-nav-signin" href="/login">
               Sign in
             </a>
             <a className="or-button or-button-small" href="/login">
-              Get started <span aria-hidden="true">↗</span>
+              Start free <span aria-hidden="true">↗</span>
             </a>
           </div>
         </div>
@@ -218,12 +179,13 @@ export default async function Home() {
               into private replies.
             </h1>
             <p className="or-lead">
-              Someone comments a keyword on your post or reel, OpenReply sends
-              them a DM automatically. Free, open source, self-hosted.
+              Someone comments a keyword on your post or reel. CheckDM matches
+              it, sends the private reply, and keeps a record of every send — so
+              nothing gets missed and nothing gets sent twice.
             </p>
             <div className="or-actions">
-              <a className="or-button or-button-primary" href={SETUP_DOCS_URL}>
-                Set up OpenReply <span aria-hidden="true">↗</span>
+              <a className="or-button or-button-primary" href="/login">
+                Start free <span aria-hidden="true">↗</span>
               </a>
               <a className="or-text-link" href="#how">
                 See how it works <span aria-hidden="true">↓</span>
@@ -285,11 +247,11 @@ export default async function Home() {
                   <br />A system you can inspect.
                 </h2>
                 <p>
-                  OpenReply owns the campaigns, keyword matching, queues,
-                  retries, logs, and inbox. Your connection provider handles the
-                  Instagram API.
+                  CheckDM owns the campaigns, keyword matching, queues, retries,
+                  logs and inbox. Your connection provider handles the Instagram
+                  API.
                 </p>
-                <a href={GITHUB_URL} className="or-text-link">
+                <a href={SOURCE_URL} className="or-text-link">
                   Explore the source <span aria-hidden="true">↗</span>
                 </a>
               </div>
@@ -297,26 +259,26 @@ export default async function Home() {
                 <div>
                   <span className="or-mono">Web app</span>
                   <strong>Next.js + React</strong>
-                  <span>Dashboard & incoming events</span>
+                  <span>Dashboard and incoming events</span>
                 </div>
                 <div>
                   <span className="or-mono">Background worker</span>
                   <strong>Node.js + BullMQ</strong>
-                  <span>Queued delivery & reconciliation</span>
+                  <span>Queued delivery and reconciliation</span>
                 </div>
                 <div>
                   <span className="or-mono">Your data</span>
                   <strong>PostgreSQL + Redis</strong>
-                  <span>Campaigns, accounts, logs & queue</span>
+                  <span>Campaigns, accounts, logs and queue</span>
                 </div>
               </div>
             </section>
             <section id="setup" className="or-section">
               <div className="or-section-intro">
-                <h2>Self-host OpenReply. Choose your connection.</h2>
+                <h2>Choose how you connect.</h2>
                 <p>
                   Both options need your own web app, background worker,
-                  PostgreSQL, and Redis. OpenReply is free software; hosting and
+                  PostgreSQL and Redis. CheckDM is free software; hosting and
                   provider costs are separate.
                 </p>
               </div>
@@ -327,13 +289,13 @@ export default async function Home() {
                     <span>Recommended for simpler setup</span>
                   </div>
                   <p>
-                    Use Zernio’s managed Instagram connection instead of
-                    creating and reviewing your own Meta app. Save an API key in
-                    Settings, choose a profile, and connect your account.
+                    Use Zernio’s managed Instagram connection instead of creating
+                    and reviewing your own Meta app. Save an API key in Settings,
+                    choose a profile, and connect your account.
                   </p>
                   <ul>
-                    <li>No Meta app secrets to configure in OpenReply</li>
-                    <li>OpenReply registers the webhook for you</li>
+                    <li>No Meta app secrets to configure in CheckDM</li>
+                    <li>CheckDM registers the webhook for you</li>
                     <li>Optional paid service and project sponsor</li>
                   </ul>
                   <a
@@ -345,7 +307,7 @@ export default async function Home() {
                     Explore Zernio <span aria-hidden="true">↗</span>
                   </a>
                   <a className="or-provider-guide" href={ZERNIO_DOCS_URL}>
-                    Read setup & feature limits
+                    Read setup and feature limits
                   </a>
                 </article>
                 <article>
@@ -373,9 +335,9 @@ export default async function Home() {
                 </article>
               </div>
               <p className="or-setup-note">
-                Instagram’s account requirements, permissions, messaging
-                windows, and rate limits apply with either provider. Existing
-                accounts are never automatically migrated.
+                Instagram’s account requirements, permissions, messaging windows
+                and rate limits apply with either provider. Existing accounts are
+                never automatically migrated.
               </p>
             </section>
             <section className="or-section or-faq">
@@ -384,9 +346,9 @@ export default async function Home() {
               </div>
               <div>
                 <details>
-                  <summary>Is OpenReply free?</summary>
+                  <summary>Is CheckDM free?</summary>
                   <p>
-                    Yes. OpenReply is MIT-licensed software with no software
+                    Yes. CheckDM is MIT-licensed software with no software
                     subscription or seat limits. You pay for your own
                     infrastructure and any optional services you choose,
                     including Zernio.
@@ -405,9 +367,9 @@ export default async function Home() {
                   <summary>Do I need Zernio?</summary>
                   <p>
                     No. Zernio is an optional paid connection provider and
-                    sponsor. It can spare you setting up your own Meta app,
-                    while OpenReply still runs on your infrastructure. The
-                    direct Meta path stays available.{" "}
+                    sponsor. It can spare you setting up your own Meta app, while
+                    CheckDM still runs on your infrastructure. The direct Meta
+                    path stays available.{" "}
                     <a
                       href={zernioLink({ placement: "landing-faq" })}
                       rel="sponsored noopener noreferrer"
@@ -416,6 +378,14 @@ export default async function Home() {
                       Learn about Zernio
                     </a>
                     .
+                  </p>
+                </details>
+                <details>
+                  <summary>What happens if a comment is delivered twice?</summary>
+                  <p>
+                    Nothing happens twice. Each reply and DM is claimed in the
+                    database before it is sent, so a repeated webhook, a
+                    duplicated job or a retry can never produce a second message.
                   </p>
                 </details>
                 <details>
@@ -443,16 +413,14 @@ export default async function Home() {
           </div>
         </div>
         <section className="or-container or-closing">
-          <h2>
-            Set up your first campaign
-          </h2>
-          <p>Clone it, connect Instagram, and write your first reply.</p>
+          <h2>Set up your first campaign</h2>
+          <p>Connect Instagram, write your first reply, and you are done.</p>
           <div className="or-actions">
-            <a className="or-button or-button-primary" href={SETUP_DOCS_URL}>
-              Set up OpenReply <span aria-hidden="true">↗</span>
+            <a className="or-button or-button-primary" href="/login">
+              Start free <span aria-hidden="true">↗</span>
             </a>
-            <a className="or-text-link" href={GITHUB_URL}>
-              Star on GitHub <span aria-hidden="true">↗</span>
+            <a className="or-text-link" href={SETUP_DOCS_URL}>
+              Read the setup guide <span aria-hidden="true">↗</span>
             </a>
           </div>
         </section>
@@ -461,13 +429,14 @@ export default async function Home() {
         <div className="or-container">
           <div className="or-footer-top">
             <div>
-              <Link href="/" className="or-wordmark">
-                OpenReply<span aria-hidden="true">↗</span>
+              <Link href="/">
+                <Wordmark />
               </Link>
-              <p>Open source Instagram comment-to-DM automation.</p>
+              <p>Instagram comment-to-DM automation you can inspect.</p>
             </div>
             <nav aria-label="Footer navigation">
-              <a href={GITHUB_URL}>GitHub</a>
+              <Link href="/templates">Templates</Link>
+              <Link href="/about">About</Link>
               <a href={SETUP_DOCS_URL}>Setup guide</a>
               <Link href="/privacy">Privacy</Link>
               <Link href="/terms">Terms</Link>
@@ -476,8 +445,10 @@ export default async function Home() {
           </div>
           <div className="or-footer-bottom">
             <span>
-              MIT licensed · Built by{" "}
-              <a href="https://diwenhuang.ca">Diwen Huang</a>
+              Created by{" "}
+              <a href={CREATOR_URL} target="_blank" rel="noreferrer">
+                {CREATOR_NAME}
+              </a>
             </span>
             <SponsorCredit placement="landing-footer" />
           </div>

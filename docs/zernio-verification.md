@@ -1,5 +1,9 @@
 # Zernio integration verification
 
+> **Historical record.** This is a point-in-time report of a test run dated
+> 2026-09-08, kept as evidence and left unedited. The product was named OpenReply
+> at the time and is now CheckDM; the technical findings still apply.
+
 Verified on 2026-09-08 using an isolated OpenReply installation with PostgreSQL 16, Redis, the real background worker, a public HTTPS callback, and a temporary key for a team-owned Zernio account. No direct Meta app credentials were configured for this installation.
 
 ## Completed checks

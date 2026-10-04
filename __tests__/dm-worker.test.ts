@@ -20,6 +20,7 @@ const {
   mockPrisma: {
     zernioConnection: { findUnique: vi.fn() },
     postbackDelivery: { create: vi.fn(), delete: vi.fn() },
+    commentDelivery: { create: vi.fn(), delete: vi.fn() },
     automation: {
       findMany: vi.fn(),
       findFirst: vi.fn(),
@@ -219,6 +220,11 @@ function createMockPostbackJob(
 beforeEach(() => {
   vi.clearAllMocks();
   mockPrisma.postbackDelivery.create.mockReset().mockResolvedValue({});
+  mockPrisma.postbackDelivery.delete.mockReset().mockResolvedValue({});
+  // Default: the claim insert wins, so every leg proceeds to the provider
+  // exactly as it did before durable claims existed.
+  mockPrisma.commentDelivery.create.mockReset().mockResolvedValue({});
+  mockPrisma.commentDelivery.delete.mockReset().mockResolvedValue({});
   mockPrisma.postbackDelivery.delete.mockReset().mockResolvedValue({});
 
   mockPrisma.automation.findMany.mockResolvedValue([mockAutomation]);
@@ -868,7 +874,7 @@ describe("DM Worker — one private reply per comment", () => {
     mockPrisma.dmLog.findFirst.mockImplementation(
       async (args: { where?: { status?: string } } = {}) =>
         args.where?.status === "SENT"
-          ? { automation: { name: "openreply 1" } }
+          ? { automation: { name: "checkdm 1" } }
           : { commenterName: "commenter_user" }
     );
 
@@ -881,7 +887,7 @@ describe("DM Worker — one private reply per comment", () => {
       expect.objectContaining({
         data: expect.objectContaining({
           status: "SKIPPED_DEDUP",
-          errorMessage: expect.stringContaining("openreply 1"),
+          errorMessage: expect.stringContaining("checkdm 1"),
         }),
       })
     );

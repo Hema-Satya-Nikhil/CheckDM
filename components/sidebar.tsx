@@ -11,6 +11,7 @@ import { useI18n } from "@/lib/i18n/provider";
 import Link from "next/link";
 import Image from "next/image";
 import { zernioLink } from "@/lib/zernio-links";
+import { Wordmark } from "@/components/brand/logo";
 import { usePathname } from "next/navigation";
 
 const navItems = [
@@ -61,40 +62,47 @@ export default function Sidebar({
           className="px-6 py-5 border-b border-border"
           style={{ paddingTop: "calc(1.25rem + env(safe-area-inset-top))" }}
         >
-          <Link href="/dashboard" className="text-base font-semibold">
-            OpenReply
+          <Link href="/dashboard" aria-label="CheckDM home">
+            <Wordmark />
           </Link>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
-            const isActive =
-              pathname === item.href || pathname.startsWith(item.href + "/");
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onClose}
-                aria-current={isActive ? "page" : undefined}
-                className={`
-                  block px-3 py-2.5 rounded text-sm
-                  ${
-                    isActive
-                      ? "bg-surface-hover text-foreground font-medium"
-                      : "text-muted hover:text-foreground hover:bg-surface-hover"
-                  }
-                `}
-              >
-                {t(item.label)}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 overflow-y-auto px-3 py-4">
+          <ul className="space-y-0.5">
+            {navItems.map((item) => {
+              const isActive =
+                pathname === item.href || pathname.startsWith(item.href + "/");
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    onClick={onClose}
+                    aria-current={isActive ? "page" : undefined}
+                    className={`
+                      block rounded-[var(--radius-control)] px-3 py-2 text-sm transition-colors
+                      ${
+                        isActive
+                          ? "bg-accent-soft font-medium text-accent"
+                          : "text-muted hover:bg-surface-hover hover:text-foreground"
+                      }
+                    `}
+                  >
+                    {t(item.label)}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         </nav>
 
-        <div className="px-5 py-4 border-t border-border">
-          <div className="mb-4"><LanguageSwitcher /></div>
-          <p className="text-sm text-foreground truncate">{workspaceName}</p>
-          <p className="text-xs text-muted">{t("Self-hosted")}</p>
+        <div className="border-t border-border px-5 py-4">
+          <div className="mb-4">
+            <LanguageSwitcher />
+          </div>
+          <p className="truncate text-sm font-medium text-foreground">
+            {workspaceName}
+          </p>
+          <p className="text-xs text-muted">{t("Campaign workspace")}</p>
           <a
             href={zernioLink({ placement: "sidebar" })}
             target="_blank"

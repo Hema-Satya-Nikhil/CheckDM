@@ -310,7 +310,7 @@ export default function InboxPage() {
                       <span className="truncate text-sm font-medium text-foreground">
                         {c.detailsUnavailable ? t("Details unavailable") : `@${c.contact.username ?? "unknown"}`}
                       </span>
-                      <span className="shrink-0 text-[11px] text-zinc-500">
+                      <span className="shrink-0 text-[11px] text-muted">
                         {formatTime(c.updatedTime, locale)}
                       </span>
                     </div>
@@ -380,7 +380,7 @@ export default function InboxPage() {
                         <p className="whitespace-pre-wrap break-words">{m.text}</p>
                         <p
                           className={`mt-1 text-[10px] ${
-                            m.fromMe ? "text-white/70" : "text-zinc-500"
+                            m.fromMe ? "text-white/70" : "text-muted"
                           }`}
                         >
                           {formatTime(m.createdTime, locale)}
@@ -403,7 +403,7 @@ export default function InboxPage() {
                     onKeyDown={handleKeyDown}
                     rows={1}
                     placeholder={t("Write a reply…  (Enter to send, Shift+Enter for a new line)")}
-                    className="max-h-32 min-h-[40px] flex-1 resize-none rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-zinc-500 focus:border-accent/40 focus:outline-none"
+                    className="max-h-32 min-h-[40px] flex-1 resize-none rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-subtle focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
                   />
                   <button
                     type="button"

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db/client";
 import { calculateCtr, normalizeTopKeywords } from "@/lib/tracking/analytics";
 import { buildTrackedUrl } from "@/lib/tracking/message";
 import { TRACKED_LINK_ORDER } from "@/lib/tracking/link-order";
+import { optionalDestinationUrlSchema } from "@/lib/tracking/url";
 import {
   buildInitialCampaignLinks,
   syncCampaignLinks,
@@ -52,15 +53,9 @@ const createAutomationSchema = z
       .optional()
       .default([]),
     // Empty string means "no tracked link"; a URL sets one.
-    trackedDestinationUrl: z
-      .union([z.string().url(), z.literal("")])
-      .optional()
-      .nullable(),
+    trackedDestinationUrl: optionalDestinationUrlSchema,
     // Optional second tracked link, rendered as a second DM button.
-    secondaryDestinationUrl: z
-      .union([z.string().url(), z.literal("")])
-      .optional()
-      .nullable(),
+    secondaryDestinationUrl: optionalDestinationUrlSchema,
     secondaryButtonLabel: z.string().max(20).optional().nullable(),
     isActive: z.boolean().optional().default(true),
     wholeWordMatch: z.boolean().optional().default(true),
@@ -113,15 +108,9 @@ const updateAutomationSchema = z.object({
   reportShareEnabled: z.boolean().optional(),
   // Empty string clears the tracked link; a URL updates/creates it; undefined
   // leaves it unchanged.
-  trackedDestinationUrl: z
-    .union([z.string().url(), z.literal("")])
-    .optional()
-    .nullable(),
+  trackedDestinationUrl: optionalDestinationUrlSchema,
   // Same semantics for the optional second tracked link / DM button.
-  secondaryDestinationUrl: z
-    .union([z.string().url(), z.literal("")])
-    .optional()
-    .nullable(),
+  secondaryDestinationUrl: optionalDestinationUrlSchema,
   secondaryButtonLabel: z.string().max(20).optional().nullable(),
 });
 
